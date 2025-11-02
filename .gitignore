@@ -2,4 +2,4 @@
 .env
 .idea/
 .ipynb_checkpoints/
-data/staging/
+data/raw/staging/
