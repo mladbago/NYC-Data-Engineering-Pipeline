@@ -113,3 +113,13 @@ def add_pu_do_zone(taxi_df: DataFrame, zone_df: DataFrame) -> DataFrame:
                                how='left'))
 
     return taxi_df_with_zone
+
+def transform_gold_layer(taxi_df: DataFrame, zone_df: DataFrame) -> DataFrame:
+
+    df_cleaned = clean(taxi_df)
+    df_cleaned_with_zones = add_pu_do_zone(df_cleaned, zone_df)
+    df_time_features = add_time_features(df_cleaned_with_zones)
+    df_trip_features = add_trip_features(df_time_features)
+    df = add_fare_features(df_trip_features)
+
+    return df

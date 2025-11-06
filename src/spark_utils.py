@@ -1,5 +1,5 @@
 from pyspark.sql import SparkSession
-from config import SPARK_APP_NAME, HADOOP_AWS_PACKAGE, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_JAVA_PACKAGE
+from config import SPARK_APP_NAME, HADOOP_AWS_PACKAGE, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
 
 
 def create_spark_session():
@@ -12,7 +12,6 @@ def create_spark_session():
         .config("spark.hadoop.fs.s3a.access.key", AWS_ACCESS_KEY_ID)
         .config("spark.hadoop.fs.s3a.secret.key", AWS_SECRET_ACCESS_KEY)
         .getOrCreate()
-
     )
 
     return spark

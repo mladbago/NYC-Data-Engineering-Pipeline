@@ -1,11 +1,11 @@
 from pyspark.sql import functions as sf, DataFrame, SparkSession
 import config
+from src.transform_gold import clean
+
 
 def create_dim_location(zone_df: DataFrame) -> DataFrame:
     dim_location = zone_df \
-        .withColumn("location_key", sf.monotonically_increasing_id()) \
         .select(
-        sf.col("location_key"),
         sf.col("LocationID"),
         sf.col("Borough"),
         sf.col("Zone"),
@@ -23,8 +23,7 @@ def create_dim_payment_type(spark: SparkSession) -> DataFrame:
     dim_payment_type = spark.createDataFrame(
         payment_type_data,
         ["payment_type_id", "payment_type_desc"]
-    ).withColumn("payment_type_key", sf.monotonically_increasing_id()) \
-        .select("payment_type_key", "payment_type_id", "payment_type_desc") \
+    ).select("payment_type_id", "payment_type_desc") \
         .cache()
 
     return dim_payment_type
@@ -40,8 +39,7 @@ def create_dim_rate_code(spark: SparkSession) -> DataFrame:
     dim_rate_code = spark.createDataFrame(
         rate_code_data,
         ["rate_code_id", "rate_code_desc"]
-    ).withColumn("rate_code_key", sf.monotonically_increasing_id()) \
-     .select("rate_code_key", "rate_code_id", "rate_code_desc") \
+    ).select("rate_code_id", "rate_code_desc") \
      .cache()
     return dim_rate_code
 
@@ -102,13 +100,29 @@ def create_fact_trips(df: DataFrame, dims: dict[str, DataFrame]) -> DataFrame:
 
     return df_joined
 
+def transform_silver_layer(spark: SparkSession, taxi_df: DataFrame, lookup_df: DataFrame):
 
-def save_silver_layer(tables: dict[str, DataFrame]):
-    for name, df in tables.items():
-        table_path = f"{config.LOADED_SILVER_DATA_PATH}/{name}"
+    df_cleaned = clean(taxi_df)
+    df_datetime = create_dim_datetime(spark)
+    df_location = create_dim_location(lookup_df)
+    df_rate_code = create_dim_rate_code(spark)
+    df_payment_type = create_dim_payment_type(spark)
 
-        writer = df.write \
-            .mode("overwrite") \
-            .format("parquet")
+    all_dims = {
+        "location": df_location,
+        "payment_type": df_payment_type,
+        "rate_code": df_rate_code,
+        "datetime": df_datetime
+    }
 
-        writer.save(table_path)
+    fact_trips = create_fact_trips(df_cleaned, all_dims)
+
+    all_silver_tables = {
+        "fact_trips": fact_trips,
+        "dim_location": df_location,
+        "dim_payment_type": df_payment_type,
+        "dim_rate_code": df_rate_code,
+        "dim_datetime": df_datetime
+    }
+
+    return all_silver_tables

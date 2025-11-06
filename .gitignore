@@ -5,3 +5,5 @@
 data/raw/staging/
 __pycache__/
 jars/
+data/gold
+data/silver
