@@ -4,7 +4,6 @@ from pyspark.sql.types import (
 )
 
 DIM_LOCATION_SCHEMA = StructType([
-    StructField("location_key", IntegerType(), False),
     StructField("LocationID", IntegerType(), True),
     StructField("Borough", StringType(), True),
     StructField("Zone", StringType(), True),

@@ -80,14 +80,22 @@ def add_fare_features(df: DataFrame) -> DataFrame:
 def clean(df: DataFrame) -> DataFrame:
     df_no_null = df.fillna(config.FILL_VALUES)
 
-    df_proper_years = df_no_null.filter((sf.col('tpep_pickup_datetime') < sf.col('tpep_dropoff_datetime'))
+    df_renamed = df_no_null\
+        .withColumnRenamed('Airport_fee', 'airport_fee')\
+        .withColumnRenamed('VendorID', 'vendor_id')\
+        .withColumnRenamed('RatecodeID', 'rate_code_id')\
+        .withColumnRenamed('payment_type', 'payment_type_id')\
+        .withColumnRenamed('PULocationID', 'pu_location_id')\
+        .withColumnRenamed('DOLocationID', 'do_location_id')
+
+    df_proper_years = df_renamed.filter((sf.col('tpep_pickup_datetime') < sf.col('tpep_dropoff_datetime'))
                                         & (sf.year(sf.col('tpep_pickup_datetime')) >= 2024)
                                         & (sf.year(sf.col('tpep_dropoff_datetime')) >= 2024))
 
     df_proper_passenger = df_proper_years.filter(sf.col('passenger_count').between(0, 6))
 
     fee_cols = ['fare_amount', 'extra', 'mta_tax', 'tip_amount', 'tolls_amount', 'total_amount', 'congestion_surcharge',
-                'Airport_fee', 'improvement_surcharge']
+                'airport_fee', 'improvement_surcharge']
 
     df_cleaned = df_proper_passenger
     for i in range(len(fee_cols)):
@@ -99,17 +107,17 @@ def clean(df: DataFrame) -> DataFrame:
 
 
 def add_pu_do_zone(taxi_df: DataFrame, zone_df: DataFrame) -> DataFrame:
-    pu_zone = zone_df.withColumnRenamed('LocationID', 'PULocationID') \
+    pu_zone = zone_df.withColumnRenamed('LocationID', 'pu_location_id') \
         .withColumnRenamed('Zone', 'PUZone').drop('service_zone').drop('Borough')
 
-    do_zone = zone_df.withColumnRenamed('LocationID', 'DOLocationID') \
+    do_zone = zone_df.withColumnRenamed('LocationID', 'do_location_id') \
         .withColumnRenamed('Zone', 'DOZone').drop('service_zone').drop('Borough')
 
     taxi_df_with_zone = (taxi_df.join(broadcast(pu_zone),
-                                      on='PULocationID',
+                                      on='pu_location_id',
                                       how='left')
                          .join(broadcast(do_zone),
-                               on='DOLocationID',
+                               on='do_location_id',
                                how='left'))
 
     return taxi_df_with_zone
