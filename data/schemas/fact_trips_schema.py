@@ -1,10 +1,10 @@
 from pyspark.sql.types import (
     StructType, StructField, LongType, TimestampType,
-    DoubleType, IntegerType,
+    DoubleType, IntegerType, StringType,
 )
 
 FACT_TRIPS_SCHEMA = StructType([
-    StructField("trip_key", LongType(), False),
+    StructField("trip_key", StringType(), False),
     StructField("pickup_datetime_key", IntegerType(), True),
     StructField("dropoff_datetime_key", IntegerType(), True),
     StructField("pu_location_key", LongType(), True),
@@ -24,7 +24,7 @@ FACT_TRIPS_SCHEMA = StructType([
     StructField("tolls_amount", DoubleType(), True),
     StructField("improvement_surcharge", DoubleType(), True),
     StructField("congestion_surcharge", DoubleType(), True),
-    StructField("Airport_fee", DoubleType(), True),
+    StructField("airport_fee", DoubleType(), True),
     StructField("total_amount", DoubleType(), True),
 
     StructField("tpep_pickup_datetime", TimestampType(), True),

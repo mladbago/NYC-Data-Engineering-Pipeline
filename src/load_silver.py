@@ -1,13 +1,15 @@
 from pyspark.sql import DataFrame
-from config import LOADED_SILVER_DATA_PATH
+from config import LOADED_SILVER_TAXI_DATA_PATH, LOADED_SILVER_ZONE_DATA_PATH
 
 
-def load_silver_layer(tables: dict[str, DataFrame]):
-    for name, df in tables.items():
-        table_path = f"{LOADED_SILVER_DATA_PATH}/{name}"
+def load_silver_layer(taxi_df: DataFrame, zone_df: DataFrame):
+    taxi_df.write \
+        .mode("overwrite") \
+        .format("delta") \
+        .partitionBy("pickup_date") \
+        .save(f"{LOADED_SILVER_TAXI_DATA_PATH}")
 
-        writer = df.write \
-            .mode("overwrite") \
-            .format("parquet")
-
-        writer.save(table_path)
+    zone_df.write \
+        .mode("overwrite") \
+        .format("delta") \
+        .save(f"{LOADED_SILVER_ZONE_DATA_PATH}")
